@@ -3,7 +3,7 @@ Build a matrix class here to implement routine operation
 In this program, I create a Matrix class to store vital information and operations.
 As for solving linear equations, I pack all dependent functions into below function,
 
-                    sle(Matrix b, int method)
+    sle(Matrix b, int method)
 
 Here the method is a selective parameter can be defined as
 
