@@ -31,6 +31,7 @@ They are much simplier form, named triangle matrix, to solve.
 Dependence tree as below:
 
 Class Matrix:
+
     ----properties:
         ----unsigned int row
         ----unsigned int col
