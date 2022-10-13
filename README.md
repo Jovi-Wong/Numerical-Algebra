@@ -35,7 +35,7 @@ Class Matrix:
     ----properties:
         ----unsigned int row
         ----unsigned int col
-        ----vector<vector<double>> mat
+        ----vector< vector<double> > mat
 
     ----function:
         ----Matrix sle(Matrix X)
