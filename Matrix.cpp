@@ -1,4 +1,4 @@
-#include "Matrix.h"
+#include "Matrix.hpp"
 
 #define nonpivot 0
 #define colpivot 1
@@ -28,17 +28,16 @@ Matrix::Matrix(unsigned int m, unsigned int n, double init[])
         }
         mat[i].shrink_to_fit();
     }
-//  print();
 }
 
 
 
 //construct a m x m identity matrix
-Matrix::Matrix(unsigned int m, unsigned int n, int type)
+Matrix::Matrix(unsigned int m, unsigned int n, MatrixInitType type)
 {
     switch(type)
     {
-        case 0:
+        case MatrixInitType::ZEROS:
         {
             row = m;
             col = n;
@@ -51,7 +50,7 @@ Matrix::Matrix(unsigned int m, unsigned int n, int type)
             break;
         }
         
-        case 1:
+        case MatrixInitType::IDENTITY:
         {
             if(m != n)
             {
@@ -90,7 +89,6 @@ Matrix Matrix::trans()
             newmat.mat[i][j] = mat[j][i];
         }
     }
-//  new.print();
     return newmat;
 }
 
@@ -130,7 +128,6 @@ Matrix Matrix::lowtri_sle(Matrix b)
         }
     }
     b.mat[n][1] = b.mat[n][1]/(this->mat[n][n]);
-//  b.print();
     return b;
 }
 
@@ -154,7 +151,7 @@ Matrix Matrix::uptri_sle(Matrix y)
 
 
 //output the Low triangle and up triangle matrix stored in one matrix
-vector<Matrix> Matrix::LU(int method)
+vector<Matrix> Matrix::LU(LUPivotType method)
 {
     if(row != col)
     {
@@ -173,9 +170,8 @@ vector<Matrix> Matrix::LU(int method)
 
     switch(method)
     {
-        case 0:
+        case LUPivotType::NONPIVOT:
         {
-//            cout << "enter nonpivot LU" << endl;
             int n = row;
             Matrix rst = *this;
             for(int k=1; k<n; ++k)
@@ -197,18 +193,15 @@ vector<Matrix> Matrix::LU(int method)
                     }
                 }
             }
-//            cout << "print LU matrix by nonpivot method" << endl;
-//            rst.print();
+
             LUPQ.push_back(rst);
             break;
         }
 
-        case 1:
+        case LUPivotType::COLPIVOT:
         {
-//            cout <<"enter colpivot method" <<endl;
             int n = row;
             Matrix rst = *this;
-            //firstly, the max value in the column
             for(int k=1; k<n; ++k)
             {
                 int p = 0;
@@ -242,16 +235,12 @@ vector<Matrix> Matrix::LU(int method)
                 {
                     cerr <<"Error! This is a singular matrix";
                 }
-//                cout << k << " step in colpivot method" << endl;
-//                rst.print();
             }
-//            cout << "print LU matrix by colpivot method" << endl;
-//            rst.print();
             LUPQ.push_back(rst);
             break;
         }
 
-        case 2:
+        case LUPivotType::ALLPIVOT:
         {
             cerr << "All-pivot method hasn't been ready yet!" << endl;
             break;
@@ -264,8 +253,8 @@ vector<Matrix> Matrix::LU(int method)
         }
     }
     
-    Matrix P(row,row,identity);
-    Matrix Q(row,row,identity);
+    Matrix P(row, row, MatrixInitType::IDENTITY);
+    Matrix Q(row, row, MatrixInitType::IDENTITY);
 
     for(int i=1; i<row; ++i)
     {
@@ -275,10 +264,7 @@ vector<Matrix> Matrix::LU(int method)
              swap(Q.mat[j][i],Q.mat[j][t[i]]);
         } 
     }
-//    cout << "print matrix P:" << endl;
-//    P.print();
-//    cout << "print matrix Q:" << endl;
-//    Q.print();
+
     LUPQ.push_back(P);
     LUPQ.push_back(Q);
     return LUPQ;
@@ -304,15 +290,13 @@ int Matrix::max_index(const vector<double>& vec)
 
 //solve linear equations 
 //syntax such as x = A.sle(b) to solve Ax=b
-Matrix Matrix::sle(Matrix b, int LU_method)
+Matrix Matrix::sle(Matrix b, LUPivotType LU_method)
 {
     vector<double> u(row+1,0);
     vector<Matrix> plu = LU(LU_method);
-    Matrix L(row, col, identity);
-    Matrix U(row, col, zeros);
-//    cout << "print intial U" << endl;
-//    U.print();
-//    Matrix P = plu[1];
+    Matrix L(row, col, MatrixInitType::IDENTITY);
+    Matrix U(row, col, MatrixInitType::ZEROS);
+
     //extract low triangle matrix
     for(int i=1; i<=row;++i)
     {
@@ -328,29 +312,16 @@ Matrix Matrix::sle(Matrix b, int LU_method)
             }
         }
     }
-//    cout << "final L" << endl;
-//    L.print();
-//    cout << "final U" << endl;
-//    U.print();
-//    cout << "Show matrix Pb" << endl;
-//    Pb.print();
+
     Matrix y = L.lowtri_sle(plu[1]*b);
-//    cout << "print y" << endl;
-//    y.print();
     Matrix x = U.uptri_sle(y);
     return x;
 }
 
 Matrix Matrix::operator*(const Matrix& A)
 {
-//    cout << "the input A is " << endl;
-//    A.print();
-//    cout << "this -> row = " << this->row << endl;
-//    cout << "A.col = " << A.col << endl;
     Matrix rst(this->row, A.col, zeros);
-//    cout << "intial result matrix" << endl;
-//    rst.print();
-//    (*this).print();
+
     for(int i=1; i<=rst.row; ++i)
     {
         for(int j=1; j<=rst.col; ++j)
@@ -372,24 +343,6 @@ Matrix Matrix::diag_sle(Matrix b)
     }
     return b;
 }
-
-
-//Matrix lowtri_sle(unsigned int leading_dimension, double L[], double b[])
-//{
-//    for(int j=0; j<leading_dimension-1; ++j) 
-//    {
-//        b[j] = b[j]/L[j*leading_dimension+j];
-//        for(int k=j+1; k<leading_dimension; ++k)
-//        {
-//            b[k]=b[k]-b[j]*L[k*leading_dimension+j];
-//        }
-//    }
-//    b[leading_dimension-1] = b[leading_dimension-1]/L[leading_dimension*leading_dimension-1];
-
-//    Matrix rst(leading_dimension,1,b);
-//    return rst;
-//}
-
 
 
 
@@ -416,7 +369,6 @@ Matrix SymmetricalPositiveMatrix::sle(Matrix b, int method)
    {
        case 1:
        {
-//           cout << "implement method 1" << endl;
            vector<Matrix> LLT = LU(method);
            Matrix y = LLT[0].lowtri_sle(b);
            x = LLT[1].uptri_sle(y);
@@ -425,9 +377,7 @@ Matrix SymmetricalPositiveMatrix::sle(Matrix b, int method)
 
        case 2:
        {
-//           cout << "implement method 2" << endl;
            vector<Matrix> LDLT = LU(method);
-//           cout << "LU disposition complete!" << endl;
            Matrix z = LDLT[0].lowtri_sle(b);
            Matrix y = LDLT[1].diag_sle(z);
            x = LDLT[2].uptri_sle(y);
@@ -465,7 +415,7 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
                 }
             }
             
-            Matrix L(n,n,identity);
+            Matrix L(n, n, MatrixInitType::IDENTITY);
 
             for(int i=1; i<=n; ++i)
             {
@@ -474,12 +424,9 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
                     L.mat[i][j] = A.mat[i][j];
                 }
             }
-//            cout << "Matrix L as below" << endl;
-//            L.print();
-            Matrix LT(n,n,identity);
-//            cout << "Matrix LT as below" << endl;
+
+            Matrix LT(n,n,MatrixInitType::IDENTITY);
             LT = L.trans();
-//            LT.print();
             rst.push_back(L);
             rst.push_back(LT);
             break;
@@ -488,10 +435,8 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
 
         case 2:
         {
-//            cout << "LU case 2" << endl;
             for(int j=1; j<=n; ++j)
             {
-//                cout << "j = " << j << endl;
                 Matrix v(1,j-1,zeros);
                 if(j != 1)
                 {    
@@ -504,8 +449,7 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
                     {
                         A.mat[j][j] = A.mat[j][j]-A.mat[j][k]*v.mat[1][k];
                     }
-//                    cout << "j = " << j << " block 1 finished!" << endl;
-                
+
                     for(int k=j+1; k<=n; ++k)
                     {
                         double temp = 0;
@@ -515,7 +459,6 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
                         }
                         A.mat[k][j] = (A.mat[k][j]-temp)/A.mat[j][j];
                     }
-//                    cout << "j = " << j << " block 2 complete!" << endl;
                 }
                 else
                 {
@@ -526,8 +469,8 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
                 }
             }
 
-            Matrix L(n,n,identity);
-            Matrix D(n,n, zeros);
+            Matrix L(n, n, MatrixInitType::IDENTITY);
+            Matrix D(n, n, MatrixInitType::ZEROS);
 
             for(int i=1; i<=n; ++i)
             {
@@ -537,12 +480,8 @@ vector<Matrix> SymmetricalPositiveMatrix::LU(int method)
                 }
                 D.mat[i][i] = A.mat[i][i];
             }
-//            cout << "Matrix L as below by LDL" << endl;
             rst.push_back(L);
-//            L.print();
-//            cout << "Matrix D as below by LDL " << endl;
             rst.push_back(D);
-//            D.print();
             rst.push_back(L.trans());
             break;
         }

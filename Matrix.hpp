@@ -4,10 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <exception>
-
-#define nonpivot 0
-#define colpivot 1
-#define allpivot 2
+#include <cmath>
 
 #define zeros 0
 #define identity 1
@@ -15,7 +12,18 @@
 #define LL 1
 #define LDL 2
 
+enum class LUPivotType
+{
+	NONPIVOT = (int)0,
+	COLPIVOT = (int)1,
+	ALLPIVOT = (int)2
+};
 
+enum class MatrixInitType
+{
+	ZEROS = (int) 0,
+	IDENTITY = (int) 1
+};
 
 using namespace std;
 
@@ -28,22 +36,21 @@ public:
     unsigned int col;
     vector< vector<double> > mat;
     
-   
     Matrix(unsigned int m, unsigned int n, double init[]);
-    Matrix(unsigned int m, unsigned int n, int type = zeros);
+    Matrix(unsigned int m, unsigned int n, MatrixInitType type = MatrixInitType::ZEROS);
     ~Matrix(){};
 
     Matrix trans();
     int print();
-    virtual Matrix sle(Matrix b, int LU_method=colpivot);
+    virtual Matrix sle(Matrix b, LUPivotType LU_method = LUPivotType::COLPIVOT);
     Matrix operator*(const Matrix& A);
     Matrix operator-(const Matrix& B);
     friend Matrix operator*(double cof, Matrix& B);
 
     Matrix lowtri_sle(Matrix b);//function in sle(Matrix b)
     Matrix uptri_sle(Matrix y);//function in sle(Matrix b)
-    Matrix diag_sle(Matrix b);
-    virtual vector<Matrix> LU(int method = colpivot);//function in sle(Matrix b)
+    Matrix diag_sle(Matrix b); // function for sle
+    virtual vector<Matrix> LU(LUPivotType method = LUPivotType::COLPIVOT);//function in sle(Matrix b)
     int max_index(const vector<double>& vec);//return the index of maximum
 
 };

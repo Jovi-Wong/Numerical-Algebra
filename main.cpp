@@ -1,6 +1,5 @@
-#include "Matrix.h"
+#include "Matrix.hpp"
 #include "time.h"
-
 
 int main()
 {
